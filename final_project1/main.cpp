@@ -4,16 +4,26 @@
 #include "Skybox.h"
 #include <GL/freeglut.h>
 #include "util.h"
+#include <vector>
+#include "missile.h"
 
-
+//미사일들
+std::vector<Missile> missiles;
 
 //객체 선언
 Terrain* terrain; //지형
 Skybox* skybox; //스카이 박스
 Camera cam; //카메라
+Missile *missile;
+
+void fireMissile();
 
 bool keyPressed[256]; //키보드 입력 상황을 나타내는 배열
-void myKeyboard(unsigned char key, int x, int y) { keyPressed[key] = true; }
+void myKeyboard(unsigned char key, int x, int y) { 
+	keyPressed[key] = true; 
+	if(keyPressed[' ']) { fireMissile(); }
+
+}
 //배열이 true면 Key down
 void myKeyboardUp(unsigned char key, int x, int y) { keyPressed[key] = false; }
 //배열이 false면 Key Up
@@ -33,11 +43,16 @@ void Display() {
 		glTranslatef(cam.eye.x, cam.eye.y, cam.eye.z);
 		skybox->draw();
 	glPopMatrix();
-	glScalef(1.0f, 0.2f, 1.0f);
 	glPushMatrix();
+		glScalef(1.0f, 0.2f, 1.0f);
 		terrain->RenderTerrain(cam.eye.x, cam.eye.z);
-		//지형을 그림.카메라가 위치한 타일 블록의 좌표를 계산하기 위해 좌표를 넘김.
 	glPopMatrix();
+
+	for (auto& missile : missiles) {
+		missile.MissileDraw(cam.eye.x, cam.eye.y, cam.eye.z, cam);  // 각 미사일의 draw 메서드 호출
+
+	}
+
 	fog();//수면 아래 안개 효과
 	glFlush();
 	glutSwapBuffers(); //더블 버퍼링
@@ -65,6 +80,18 @@ void Idle() {//해당 키가 눌려 있는지 지속적으로 검사해 다중 �
 	if (keyPressed['l']) { cam.roll(-0.5); }
 	else { cam.slide(0, 0, 0); } //아무것도 누르지 않을 때는 이동 없는 것으로 간주.모델 뷰 행렬을 유지 다시 그림
 
+
+
+	for (auto& missile : missiles) {
+		missile.MoveMissile(0.5f);  // 이동 속도
+	}
+
+	// 비활성화된 미사일 제거
+	missiles.erase(std::remove_if(missiles.begin(), missiles.end(),
+		[](const Missile& m) { return !m.active; }),
+		missiles.end());
+
+
 	glutPostRedisplay(); // 다시그림
 }
 
@@ -81,8 +108,21 @@ void Reshape(GLint w, GLint h) {
 void dispose() {
 	delete terrain;
 	delete skybox;
-	delete& cam;
+	//원래 책에는 있었지만 스택 메모리에 할당된 객체이기 때문에 delete로 
+	//delete& cam;
 
+}
+
+//미사일 발사
+void fireMissile() {
+	printf("클릭함\n");
+	printf("Camera Position: (%f, %f, %f)\n", cam.eye.x, cam.eye.y, cam.eye.z);
+	printf("Camera Direction: (%f, %f, %f)\n", cam.n.x, cam.n.y, cam.n.z);
+	Vector3 dir(-cam.n.x, -cam.n.y, -cam.n.z); // 카메라 방향의
+	dir.normalize();
+	Point3 camp;
+	camp.set(cam.eye.x, cam.eye.y, cam.eye.z);
+	missiles.emplace_back(camp, dir); // 미사일 생성
 }
 
 void fog() {

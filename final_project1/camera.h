@@ -53,6 +53,9 @@ public:
 	Vector3 cross(const Vector3& b) const;
 	float dot(Vector3 b);
 
+	float magnitude() const {
+		return sqrt(x * x + y * y + z * z);
+	}
 
 };
 

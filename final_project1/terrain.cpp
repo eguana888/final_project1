@@ -26,6 +26,14 @@ Terrain::Terrain(pcStr heightFile, pcStr surfaceTexFile, GLuint width, GLint hei
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); //매핑될 물체가 클 경우 텍스처의 확장 방법 결정
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);//물 텍스처 설정
+
+
+    if (img != nullptr) {
+        free(img->data);
+        free(img);
+        img = nullptr;
+    }
+
     const char* waterTexFile = "space/water.bmp";
     img = LoadBMP(waterTexFile); //물 이미지 로드
     glGenTextures(1, &_texId_water); //텍스처 ID와 연결
@@ -80,10 +88,21 @@ Terrain::Terrain(pcStr heightFile, pcStr surfaceTexFile, GLuint width, GLint hei
 }
 
 Terrain::~Terrain() {
-    if (_height != 0) { delete[] _height; }
-    if (_texId_ground != 0) { glDeleteTextures(1, &_texId_ground); }
-    if (_texId_water != 0) { glDeleteTextures(1, &_texId_water); }
-    if (img != 0) { free(img->data); free(img); }
+    if (_height != 0) {
+        delete[] _height;
+        _height = nullptr; // 포인터 초기화로 중복 해제 방지
+    }
+    if (_texId_ground != 0) {
+        glDeleteTextures(1, &_texId_ground);
+    }
+    if (_texId_water != 0) {
+        glDeleteTextures(1, &_texId_water);
+    }
+    if (img != 0) {
+        free(img->data);
+        free(img);
+        img = nullptr; // 포인터 초기화
+    }
 }
 
 void Terrain::RenderTerrain(GLfloat x, GLfloat y) {

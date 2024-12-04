@@ -11,10 +11,6 @@
 #define GL CLAMP TO EDGE 0x812F
 
 
-
-
-
-
 const char* texFiles[6] = {
     "space/front.bmp",
     "space/back.bmp",

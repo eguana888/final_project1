@@ -9,7 +9,7 @@ class MissilePoint3
 {
 public:
 	float x, y, z;
-	// 시점에서 나감
+	// 시점에서 생성됨
 	void set(Point3& p) {
 		x = p.x; y = p.y; z = p.z;
 	}
@@ -25,9 +25,15 @@ private:
 
 class Missile {
 public:
-	Missile();
+	MissilePoint3 position;
+	Vector3 direction;
+	bool active;
+	float rotationMatrix[16];
+
+	Missile(Point3& eye, const Vector3& dir);
 	~Missile();
-	void MissileDraw(float x, float y, float z); //미사일 그리기
+	void MissileDraw(float x, float y, float z, Camera missileV); //미사일 그리기
+	void MoveMissile(double speed);
 
 
 };
