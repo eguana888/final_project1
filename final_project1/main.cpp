@@ -9,6 +9,8 @@
 
 //미사일들
 std::vector<Missile> missiles;
+std::vector<ParticleSystem> activeExplosions;
+
 
 //객체 선언
 Terrain* terrain; //지형
@@ -17,7 +19,6 @@ Camera cam; //카메라
 Missile *missile;
 
 void fireMissile();
-
 bool keyPressed[256]; //키보드 입력 상황을 나타내는 배열
 void myKeyboard(unsigned char key, int x, int y) { 
 	keyPressed[key] = true; 
@@ -53,6 +54,12 @@ void Display() {
 
 	}
 
+	for (auto& explosion : activeExplosions) {
+		explosion.drawParticles(); // 파티클 시스템 그리기
+	}
+
+
+
 	fog();//수면 아래 안개 효과
 	glFlush();
 	glutSwapBuffers(); //더블 버퍼링
@@ -83,14 +90,34 @@ void Idle() {//해당 키가 눌려 있는지 지속적으로 검사해 다중 �
 
 
 	for (auto& missile : missiles) {
-		missile.MoveMissile(0.5f);  // 이동 속도
+		missile.MoveMissile(1.5f, terrain);  // 이동 속도
+		if (!missile.active) {
+
+			Point3 a(missile.position.x, missile.position.y, missile.position.z);
+			
+			ParticleSystem explosion;
+			explosion.createExplosion(a);
+			activeExplosions.push_back(explosion);
+		}
 	}
+	for (auto& explosion : activeExplosions) {
+		explosion.updateParticles(0.1f);  // deltaTime을 적절한 값으로 설정
+	}
+
 
 	// 비활성화된 미사일 제거
 	missiles.erase(std::remove_if(missiles.begin(), missiles.end(),
 		[](const Missile& m) { return !m.active; }),
 		missiles.end());
 
+
+	for (auto& explosion : activeExplosions) {
+		explosion.updateParticles(0.1f);  // deltaTime을 적절한 값으로 설정
+	}
+
+	activeExplosions.erase(std::remove_if(activeExplosions.begin(), activeExplosions.end(),
+		[](const ParticleSystem& p) { return p.particles.empty(); }),
+		activeExplosions.end());
 
 	glutPostRedisplay(); // 다시그림
 }
@@ -115,15 +142,14 @@ void dispose() {
 
 //미사일 발사
 void fireMissile() {
-	printf("클릭함\n");
-	printf("Camera Position: (%f, %f, %f)\n", cam.eye.x, cam.eye.y, cam.eye.z);
-	printf("Camera Direction: (%f, %f, %f)\n", cam.n.x, cam.n.y, cam.n.z);
+
 	Vector3 dir(-cam.n.x, -cam.n.y, -cam.n.z); // 카메라 방향의
 	dir.normalize();
 	Point3 camp;
 	camp.set(cam.eye.x, cam.eye.y, cam.eye.z);
 	missiles.emplace_back(camp, dir); // 미사일 생성
 }
+
 
 void fog() {
 	//GL_FOG 활성화

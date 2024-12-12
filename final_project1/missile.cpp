@@ -3,6 +3,9 @@
 #include <GL/freeglut.h>
 #include <GL/glext.h>
 #include "missile.h"
+#include "terrain.h"
+
+extern std::vector<ParticleSystem> activeExplosions;
 
 Missile::Missile(Point3& eye, const Vector3& dir) :active(true) {
     position.set(eye);      // 미사일 시작 위치를 카메라의 eye 위치로 설정
@@ -47,23 +50,24 @@ void Missile::MissileDraw(float x, float y, float z, Camera missileV) {
     // 미사일 몸체
     GLUquadric* quadric = gluNewQuadric();
     glColor3f(0.8f, 0.8f, 0.8f);  // 몸체 색상
-    gluCylinder(quadric, 5.0, 5.0, 50.0, 30, 30);  // 미사일 몸체
+    gluCylinder(quadric, 2.0, 2.0, 20.0, 30, 30);  // 미사일 몸체
 
     // 미사일 앞부분
     glPushMatrix();
-    glTranslatef(0.0f, 0.0f, 50.0);  // 몸체 끝부분으로 이동
+    glTranslatef(0.0f, 0.0f, 20.0);  // 몸체 끝부분으로 이동
     glColor3f(1.0f, 1.0f, 1.0f);     // 앞부분 색상
-    glutSolidCone(5.0, 15.0, 30, 30); // 앞부분 생성
+    glutSolidCone(2.0, 6.0, 30, 30); // 앞부분 생성
     glPopMatrix();
 
     gluDeleteQuadric(quadric);  // 메모리 해제
     glPopMatrix();
 
 
+
 }
 
 
-void Missile::MoveMissile(double speed) {
+void Missile::MoveMissile(double speed, Terrain* terrain) {
     if (!active) return;
     position.x += direction.x * speed;
     position.y += direction.y * speed;
@@ -73,5 +77,26 @@ void Missile::MoveMissile(double speed) {
         position.y < -2000.0f || position.y > 2000.0f) {
         active = false;
     }
+
+    Point3 a;
+    a.set(position.x, position.y, position.z);
+    if (checkCollision(terrain)) {
+
+    }
 }
 
+bool Missile::checkCollision(Terrain* terrain) {
+
+    MissilePoint3 headPosition;
+    headPosition.x = position.x + direction.x * 20.0f; 
+    headPosition.y = position.y + direction.y * 20.0f;
+    headPosition.z = position.z + direction.z * 20.0f;
+
+
+    GLfloat terrainHeight = terrain->getHeight(headPosition.x, headPosition.z);
+    if (headPosition.y <= terrainHeight) {
+        active = false; // 충돌 발생 시 미사일 비활성화
+        return true;
+    }
+    return false;
+}

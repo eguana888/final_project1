@@ -1,6 +1,12 @@
 #include "util.h"
 #include <direct.h>
-#include <filesystem>
+#include <fstream> 
+
+
+bool fileExists(const std::string& filename) {
+    std::ifstream file(filename);
+    return file.good();
+}
 
 void debugWorkingDirectory(const char* filename) {
     char buffer[256];
@@ -10,11 +16,12 @@ void debugWorkingDirectory(const char* filename) {
 }
 
 AUX_RGBImageRec* LoadBMP(const char* filename) {
-    if (!std::filesystem::exists(filename)) {
+    if (!fileExists(filename)) {
         std::cerr << "File does not exist: " << filename << std::endl;
         return nullptr;
     }
     std::cout << "File exists: " << filename << std::endl;
+
     std::ifstream file(filename, std::ios::binary);
     debugWorkingDirectory(filename);
     if (!file) {

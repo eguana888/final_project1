@@ -4,7 +4,8 @@
 #include<math.h>
 #include <GL/freeglut.h>
 #include "camera.h"
-
+#include "terrain.h"
+#include "particle.h"
 class MissilePoint3
 {
 public:
@@ -29,11 +30,12 @@ public:
 	Vector3 direction;
 	bool active;
 	float rotationMatrix[16];
+	ParticleSystem explosionParticles;
 
 	Missile(Point3& eye, const Vector3& dir);
 	~Missile();
 	void MissileDraw(float x, float y, float z, Camera missileV); //미사일 그리기
-	void MoveMissile(double speed);
-
+	void MoveMissile(double speed, Terrain* terrain);
+	bool checkCollision(Terrain* terrain);
 
 };
