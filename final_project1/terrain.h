@@ -7,7 +7,9 @@
 #include "camera.h"
 #include "util.h"
 
-
+struct Plane {
+	float a, b, c, d; // 평면의 방정식 ax + by + cz + d = 0
+};
 
 class Terrain {
 private:
@@ -37,4 +39,6 @@ public:
 	GLint getTileX(GLfloat);//해당 위치의 x 타일 구하기
 	GLint getTileY(GLfloat);//해당 위치의 y 타일 구하기
 	GLfloat waterLevel; //수면 높이
+	float getHeightAt(int x, int z);
+
 };

@@ -45,9 +45,34 @@ Terrain::Terrain(pcStr heightFile, pcStr surfaceTexFile, GLuint width, GLint hei
     //파일로 부터 가로 세도만금의 높이 데이티를 읽어 옴.
     _height = readRawData(heightFile, width, height);
 
+    for (int i = 1; i < _map_height - 1; i++) {
+        for (int j = 1; j < _map_width - 1; j++) {
+            int idx = i * _map_width + j;
+
+            // 8방향 인접한 높이 가져오기
+            float sum = 0;
+            sum += _height[(i - 1) * _map_width + (j - 1)];
+            sum += _height[(i - 1) * _map_width + j];       
+            sum += _height[(i - 1) * _map_width + (j + 1)]; 
+            sum += _height[i * _map_width + (j - 1)];       
+            sum += _height[i * _map_width + (j + 1)];       
+            sum += _height[(i + 1) * _map_width + (j - 1)]; 
+            sum += _height[(i + 1) * _map_width + j];       
+            sum += _height[(i + 1) * _map_width + (j + 1)]; 
+
+            _height[idx] = sum / 8.0f;
+
+
+            float diff = _height[idx] - _height[idx - 1]; // 인접한 높이의 차이
+            if (abs(diff) > 40) {
+                _height[idx] = _height[idx - 1] + (diff > 0 ?40 : -40);
+            }
+        }
+    }
+
     int j;
     //지형의 최솟값을 구함.
-    for (j = 0, minHeight = 2 ^ 10; j < _map_width * height; j++) {
+    for (j = 0, minHeight = 1024; j < _map_width * height; j++) {
         if (minHeight > _height[j]) { minHeight = _height[j]; }
     }
     for (int i = 0; i < _map_width* _map_height; ++i) { // 배열의 첫 10개 값 출력
@@ -249,6 +274,14 @@ GLfloat Terrain::getHeight(GLfloat _x, GLfloat _y) {
     //좌표 값을 텍스처 크기 안에 한정시킴.높이 데이터는 1차원 배열에 저장되어 있으므로 행렬 처리
     return (_height[y * _map_height + x] / 5 + 10); //해당 위치의 높이 값 리턴
 }
+float Terrain::getHeightAt(int x, int z){
+    if (x < 0 || x >= _map_width || z < 0 || z >= _map_height) {
+        return 0.0f; // 경계 체크
+    }
+    return _height[z * _map_width + x];
+}
+
+
 
 //현제 카메라가 위치한 텍스처 타일의 블록 좌표를 리턴 : ×좌표
 GLint Terrain::getTileX(GLfloat x) {

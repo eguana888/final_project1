@@ -7,6 +7,7 @@
 
 extern std::vector<ParticleSystem> activeExplosions;
 
+
 Missile::Missile(Point3& eye, const Vector3& dir) :active(true) {
     position.set(eye);      // 미사일 시작 위치를 카메라의 eye 위치로 설정
     direction = dir;        // 미사일 방향을 카메라의 n 벡터로 설정
@@ -41,11 +42,8 @@ void Missile::MissileDraw(float x, float y, float z, Camera missileV) {
     // 미사일 위치로 이동
     glTranslatef(position.x, position.y, position.z);
 
-
     // 미사일 방향과 일치시키기 위해 변환 행렬 적용
     glMultMatrixf(rotationMatrix);
-
-
 
     // 미사일 몸체
     GLUquadric* quadric = gluNewQuadric();
@@ -62,7 +60,7 @@ void Missile::MissileDraw(float x, float y, float z, Camera missileV) {
     gluDeleteQuadric(quadric);  // 메모리 해제
     glPopMatrix();
 
-
+    flameParticles.drawParticles();
 
 }
 
@@ -72,31 +70,43 @@ void Missile::MoveMissile(double speed, Terrain* terrain) {
     position.x += direction.x * speed;
     position.y += direction.y * speed;
     position.z += direction.z * speed;
-    if (position.z < -2000.0f || position.z > 2000.0f ||
-        position.x < -2000.0f || position.x > 2000.0f ||
-        position.y < -2000.0f || position.y > 2000.0f) {
-        active = false;
-    }
+    Point3 t;
+
+    t.set(position.x, position.y, position.z);
+    t.x -= direction.x * 5.0f; // 미사일 뒤쪽으로 5.0 단위
+    t.y -= direction.y * 5.0f;
+    t.z -= direction.z * 5.0f;
+
+    // 불꽃 파티클 추가
+    flameParticles.createParticles(t);
+
+    // 파티클 업데이트
+    flameParticles.updateParticles(0.1f); // 16ms(1프레임) 기준 업데이트
+
 
     Point3 a;
     a.set(position.x, position.y, position.z);
     if (checkCollision(terrain)) {
-
+        printf("%f", position.y);
+        std::cout << "Missile deactivated after collision\n";
     }
 }
 
 bool Missile::checkCollision(Terrain* terrain) {
 
     MissilePoint3 headPosition;
-    headPosition.x = position.x + direction.x * 20.0f; 
+    headPosition.x = position.x + direction.x * 20.0f;
     headPosition.y = position.y + direction.y * 20.0f;
     headPosition.z = position.z + direction.z * 20.0f;
 
 
     GLfloat terrainHeight = terrain->getHeight(headPosition.x, headPosition.z);
+
+
     if (headPosition.y <= terrainHeight) {
         active = false; // 충돌 발생 시 미사일 비활성화
         return true;
     }
     return false;
 }
+

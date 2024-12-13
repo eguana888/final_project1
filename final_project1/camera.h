@@ -13,6 +13,7 @@ public:
 	void set(Point3& p) {
 		x = p.x; y = p.y; z = p.z;
 	}
+
 	Point3(float xx, float yy, float zz) {
 		x = xx; y = yy; z = zz;
 	}

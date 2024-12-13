@@ -9,7 +9,7 @@
 
 //미사일들
 std::vector<Missile> missiles;
-std::vector<ParticleSystem> activeExplosions;
+std::vector<ParticleSystem> activePaticles;
 
 
 //객체 선언
@@ -54,17 +54,21 @@ void Display() {
 
 	}
 
-	for (auto& explosion : activeExplosions) {
-		explosion.drawParticles(); // 파티클 시스템 그리기
+	for (auto& explosion : activePaticles) {
+
+		if (explosion.wet) {
+			explosion.drawParticlesWater();
+		}
+		else {
+			explosion.drawParticles();
+		}
+
+		
 	}
-
-
 
 	fog();//수면 아래 안개 효과
 	glFlush();
 	glutSwapBuffers(); //더블 버퍼링
-
-		
 }
 
 
@@ -96,11 +100,17 @@ void Idle() {//해당 키가 눌려 있는지 지속적으로 검사해 다중 �
 			Point3 a(missile.position.x, missile.position.y, missile.position.z);
 			
 			ParticleSystem explosion;
-			explosion.createExplosion(a);
-			activeExplosions.push_back(explosion);
+			explosion.createParticles(a);
+			if (missile.position.y <= 40) {
+				explosion.wet = true;
+			}
+			else {
+				explosion.wet = false;
+			}
+			activePaticles.push_back(explosion);
 		}
 	}
-	for (auto& explosion : activeExplosions) {
+	for (auto& explosion : activePaticles) {
 		explosion.updateParticles(0.1f);  // deltaTime을 적절한 값으로 설정
 	}
 
@@ -111,13 +121,10 @@ void Idle() {//해당 키가 눌려 있는지 지속적으로 검사해 다중 �
 		missiles.end());
 
 
-	for (auto& explosion : activeExplosions) {
+	for (auto& explosion : activePaticles) {
 		explosion.updateParticles(0.1f);  // deltaTime을 적절한 값으로 설정
 	}
 
-	activeExplosions.erase(std::remove_if(activeExplosions.begin(), activeExplosions.end(),
-		[](const ParticleSystem& p) { return p.particles.empty(); }),
-		activeExplosions.end());
 
 	glutPostRedisplay(); // 다시그림
 }

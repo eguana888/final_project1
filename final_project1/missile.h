@@ -37,5 +37,6 @@ public:
 	void MissileDraw(float x, float y, float z, Camera missileV); //미사일 그리기
 	void MoveMissile(double speed, Terrain* terrain);
 	bool checkCollision(Terrain* terrain);
+	ParticleSystem flameParticles;
 
 };
